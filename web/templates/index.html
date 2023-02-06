@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+{% if length == 0 %}
+    
+{% endif %}
+<div class = "container justify-content-around d-flex flex-wrap">
+{% for board in boards %}
+    <div class="card mb-3" style="width: 21rem;">
+        <div class="card-body">
+            <h5 class="card-title font-weight-bold">{{ board.name }}</h5>
+            <p class="card-text"> {{ board.description }}.</p>
+            <a href="{{ url_for("boards.board", board_id = board.id) }}" class="btn btn-primary">Go to board</a>
+        </div>
+    </div>
+{% endfor %}
+    <a href = {{ url_for("boards.new_board") }} class = "mb-3" style = "text-decoration:none;">
+        <div class="card btn-light" style="width: 21rem;">
+            <div class="card-body">
+                <h5 class="card-title font-weight-bold text-center text-uppercase">Add a new board to enjoy the Kanban experience</h5>
+                <div class = "row justify-content-center"><i class = "fa-solid fa-plus display-2"></i></div>
+            </div>
+        </div>
+    </a>
+</div>
+{% endblock content %}

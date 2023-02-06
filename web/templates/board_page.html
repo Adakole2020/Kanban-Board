@@ -1,0 +1,410 @@
+{% extends "layout.html" %}
+{% block content %}
+    <form method = "POST" id = "board-form">
+        {{ boardForm.csrf_token }}
+        {% if role > 2 %}
+            <div class = "clearfix mb-3 container d-none" id = "revert-div">
+                <div class ="float-right row">
+                    <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Cancel Changes</span>
+                        </div>
+                    <a class = "btn btn-dark" id="revert-board" aria-label="Close" href = {{ url_for("boards.board", board_id = board_id) }}>
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+            </div>
+            <div class = "d-flex flex-row-reverse justify-content-between">
+                <div class = "row">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Edit Board</span>
+                    </div>
+                    <button class = "btn btn-secondary mr-3" type = "button" id = "editBoard"><i class="fa fa-pencil"></i></button>
+                </div>
+                <div class = "row d-none">
+                    <button class = "btn btn-danger ml-3" type = "button"><i class="fa fa-trash"></i></button>
+                    <div class="input-group-append">
+                        <span class="input-group-text font-weight-bold">Delete Board</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <fieldset class = "boardEdit" disabled>
+            <div class="form-group row">
+                <div class="input-group p-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Board Name:</span>
+                    </div>
+                    {% if boardForm.name.errors %}
+                        {{ boardForm.name(class="form-control is-invalid text-center h1", id = "boardName") }}
+                        <div class="invalid-feedback">
+                            {% for error in boardForm.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ boardForm.name(class="form-control text-center h1", id = "boardName") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group row">
+                <div  class="input-group p-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold" id="basic-addon3">Board Description:</span>
+                    </div>
+                    {% if boardForm.description.errors %}
+                        {{ boardForm.description(class="form-control is-invalid text-center", id = "boardDescription", rows = 3) }}
+                        <div class="invalid-feedback">
+                            {% for error in boardForm.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ boardForm.description(class="form-control text-center", id = "boardDescription", rows = 3) }}
+                    {% endif %}
+                </div>
+            </div>
+        </fieldset>
+            <div>
+                <div class="row justify-content-between" id = "kanbanStore">
+                    <div class="taskList col-md-4" id="todo" data-task-state = 'Requested'>
+                        <div class="d-flex flex-row text-uppercase rounded-top bg-secondary text-light font-weight-bold py-1 justify-content-between">
+                            <div class = 'pl-3 text-center'>
+                                Requested
+                            </div>
+                            {% if role > 1 %}
+                                <div>
+                                    <button class = "btn btn-outline-light border-0 rounded btn-sm mr-1 hasTask" data-toggle = "modal" data-target = "#newTaskModal" type = "button"><i class="fa-solid fa-plus mr-1"></i></button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tasks ounded-bottom bg-light p-3 px-3 align-content-center container" style = "height: 400px; overflow: scroll">
+                            {% for task in todo %}
+                                <div class="taskCard col bg-white rounded border mh-25 mb-3 p-0 border-secondary" data-task-id = "{{ task['id'] }}" data-task-name = "{{ task['name'] }}" data-task-content = "{{ task['content'] }}" data-task-assignees = {{ task['assignees'] }}>
+                                    <div class="cardHeader d-flex justify-content-between pl-2 border-bottom">
+                                        <div class = 'overflow-hidden font-weight-bold'>{{ task["name"] }}</div>
+                                        <div>
+                                            <div class="btn-group" role="group" aria-label="Add to ToDo">
+                                                <button class = "btn btn-outline-secondary border-0 rounded" data-toggle = "modal" data-target = "#taskModal" type = "button"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+                                                {% if role > 1 %}
+                                                    <button class = "btn btn-outline-danger removeTask border-0 rounded" type = "button"><i class="fa fa-trash"></i></button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="cardContent col overflow-hidden">
+                                        {{ task["content"] }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                    </div>
+                    <div class="taskList col-md-4" id="doing" data-task-state = 'In Progress'>
+                        <div class="d-flex text-uppercase rounded-top bg-warning text-light font-weight-bold py-1 justify-content-between">
+                            <div class = 'pl-3 text-center'>
+                                In Progress
+                            </div>
+                            {% if role > 1 %}
+                                <div>
+                                    <button class = "btn btn-outline-light border-0 rounded btn-sm mr-1 hasTask" data-toggle = "modal" data-target = "#newTaskModal" type = "button"><i class="fa-solid fa-plus mr-1"></i></button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tasks rounded-bottom bg-light p-3 px-3 align-content-center container" style = "height: 400px; overflow: scroll">
+                            {% for task in doing %}
+                                <div class="taskCard col bg-white rounded border mh-25 mb-3 p-0 border-warning" data-task-id = "{{ task['id'] }}" data-task-name = "{{ task['name'] }}" data-task-content = "{{ task['content'] }}" data-task-assignees = {{ task['assignees'] }}>
+                                    <div class="cardHeader d-flex justify-content-between pl-2 border-bottom">
+                                        <div class = 'overflow-hidden font-weight-bold'>{{ task["name"] }}</div>
+                                        <div>
+                                            <div class="btn-group" role="group" aria-label="Add to Doing">
+                                                <button class = "btn btn-outline-secondary border-0 rounded" data-toggle = "modal" data-target = "#taskModal" type = "button"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+                                                {% if role > 1 %}
+                                                    <button class = "btn btn-outline-danger removeTask border-0 rounded" type = "button"><i class="fa fa-trash"></i></button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="cardContent col overflow-hidden">
+                                        {{ task["content"] }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+                    </div>
+                    <div class="taskList col-md-4" id="done" data-task-state = 'Completed'>
+                        <div class="d-flex text-uppercase rounded-top bg-success text-light font-weight-bold py-1 justify-content-between">
+                            <div class = 'pl-3 text-center'>
+                                Completed
+                            </div>
+                            {% if role > 1 %}
+                                <div>
+                                    <button class = "btn btn-outline-light border-0 rounded btn-sm mr-1 hasTask" data-toggle = "modal" data-target = "#newTaskModal" type = "button"><i class="fa-solid fa-plus mr-1"></i></button>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tasks rounded-bottom bg-light p-3 px-3 align-content-center container" style = "height: 400px; overflow: scroll">
+                            {% for task in done %}
+                                <div class="taskCard col bg-white rounded border mh-25 mb-3 p-0 border-success" data-task-id = {{ task['id'] }} data-task-name = {{ task['name'] }} data-task-content = {{ task['content'] }} data-task-assignees = {{ task['assignees'] }}>
+                                    <div class="cardHeader d-flex justify-content-between pl-2 border-bottom">
+                                        <div class = 'overflow-hidden font-weight-bold'>{{ task["name"] }}</div>
+                                        <div>
+                                            <div class="btn-group" role="group" aria-label="Add to Done">
+                                                <button class = "btn btn-outline-secondary border-0 rounded" data-toggle = "modal" data-target = "#taskModal" type = "button"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+                                                {% if role > 1 %}
+                                                    <button class = "btn btn-outline-danger removeTask border-0 rounded" type = "button"><i class="fa fa-trash"></i></button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="cardContent col overflow-hidden">
+                                        {{ task["content"] }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <fieldset class = "boardEdit my-3" disabled>
+            <div class = "mb-3 input-group d-none" id = "addParticipantGroup">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Add Participant</span>
+                        </div>
+                        <button class = "btn btn-primary" type = "button" id = "addParticipant"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div class="form-group" id = "participantGroup">
+                <div class="input-group d-none mb-3" data-index = "_" id = "participant-_-form">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Participant:</span>
+                    </div>
+                    {% if templateParticipant.username.errors %}
+                        {{ templateParticipant.username(class="form-control is-invalid text-center h1 row") }}
+                        <div class="invalid-feedback">
+                            {% for error in templateParticipant.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ templateParticipant.username(class="form-control text-center h1") }}
+                    {% endif %}
+
+
+                    {% if templateParticipant.role.errors %}
+                        {{ templateParticipant.role(class="form-control is-invalid text-center h1 row") }}
+                        <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="invalid-feedback">
+                            {% for error in templateParticipant.role.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ templateParticipant.role(class="form-control text-center h1") }}
+                        <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                    {% endif %}
+                </div>
+                {% for participant in boardForm.participants %}
+                    <div class="input-group participant-form mb-3" data-index = "{{ loop.index0 }}">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Participant:</span>
+                        </div>
+                        {% if participant.username.errors %}
+                            {{ participant.username(class="form-control-plaintext is-invalid text-center h1 row") }}
+                            <div class="invalid-feedback">
+                                {% for error in participant.username.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ participant.username(class="form-control text-center h1") }}
+                        {% endif %}
+
+
+                        {% if participant.role.errors %}
+                            {{ participant.role(class="form-control is-invalid text-center h1 row") }}
+                            <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                            <div class="invalid-feedback">
+                                {% for error in participant.role.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ participant.role(class="form-control text-center h1") }}
+                            <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+    </form>
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel">Task</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id = "task-form" method = "POST" action = '{{ url_for("boards.task", board_id = board_id) }}'>
+                        {% if role > 1 %}
+                            <div class = "d-flex flex-row-reverse justify-content-between">
+                                <div class = "row">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text font-weight-bold">Edit Task</span>
+                                    </div>
+                                    <button class = "btn btn-secondary mr-3" type = "button" id = "editTask"><i class="fa fa-pencil"></i></button>
+                                </div>
+                                <div class = "row d-none">
+                                    <button class = "btn btn-danger removeTask ml-3" type = "button"><i class="fa fa-trash"></i></button>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text font-weight-bold">Delete Task</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <fieldset id = "taskEdit" disabled>
+                            {{ taskForm.csrf_token }}
+                            <div class="form-group">
+                                {{ taskForm.tid(class="form-control form-control-lg", id = "task-id") }}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.name.label(class="form-control-label") }}
+                                {% if taskForm.name.errors %}
+                                    {{ taskForm.name(class="form-control form-control-lg is-invalid", id = "task-name") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.name(class="form-control form-control-lg", id = "task-name") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.state.label(class="form-control-label") }}
+                                {% if taskForm.state.errors %}
+                                    {{ taskForm.state(class="form-control form-control-lg is-invalid", id = "task-state", readonly = true) }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.state.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.state(class="form-control form-control-lg", id = "task-state", readonly = true) }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.content.label(class="form-control-label") }}
+                                {% if taskForm.content.errors %}
+                                    {{ taskForm.content(class="form-control form-control-lg is-invalid", id = "task-content") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.content.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.content(class="form-control form-control-lg", id = "task-content") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.assignees.label(class="form-control-label") }}
+                                {% if taskForm.assignees.errors %}
+                                    {{ taskForm.assignees(class="form-control form-control-lg is-invalid", id = "task-assignees") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.assignees.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.assignees(class="form-control form-control-lg", id = "task-assignees") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        {{ taskForm.submit(class="btn btn-info d-none", id = "task-submit") }}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="newTaskModal" tabindex="-1" role="dialog" aria-labelledby="newTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newTaskModalLabel">New Task</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id = "new-task-form" method = "POST" action = "{{ url_for("boards.task", board_id = board_id) }}">
+                        <fieldset>
+                            {{ taskForm.csrf_token }}
+                            <div class="form-group">
+                                {{ taskForm.tid(class="form-control form-control-lg", id = "new-task-id") }}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.name.label(class="form-control-label") }}
+                                {% if taskForm.name.errors %}
+                                    {{ taskForm.name(class="form-control form-control-lg is-invalid", id = "new-task-name") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.name(class="form-control form-control-lg", id = "new-task-name") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.state.label(class="form-control-label") }}
+                                {% if taskForm.state.errors %}
+                                    {{ taskForm.state(class="form-control form-control-lg is-invalid", id = "new-task-state", readonly = true) }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.state.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.state(class="form-control form-control-lg", id = "new-task-state", readonly = true) }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.content.label(class="form-control-label") }}
+                                {% if taskForm.content.errors %}
+                                    {{ taskForm.content(class="form-control form-control-lg is-invalid", id = "new-task-content") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.content.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.content(class="form-control form-control-lg", id = "new-task-content") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ taskForm.assignees.label(class="form-control-label") }}
+                                {% if taskForm.assignees.errors %}
+                                    {{ taskForm.assignees(class="form-control form-control-lg is-invalid", id = "new-task-assignees") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in taskForm.assignees.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ taskForm.assignees(class="form-control form-control-lg", id = "new-task-assignees") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        {{ taskForm.submit(class="btn btn-info") }}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

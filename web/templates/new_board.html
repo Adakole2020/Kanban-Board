@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% block content %}
+<form method = "POST" id = "board-form">
+        {{ form.csrf_token }}
+            <div class = "d-flex flex-row-reverse justify-content-between">
+                <div class = "row">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Confirm New Board</span>
+                    </div>
+                    <button class = "btn btn-success mr-3" type = "submit"><i class="fa fa-check"></i></button>
+                </div>
+                <div class = "row">
+                    <button class = "btn btn-danger ml-3" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="input-group-append">
+                        <span class="input-group-text font-weight-bold" id = "renewBoard">Cancel Changes</span>
+                    </div>
+                </div>
+            </div>
+        <fieldset>
+            <div class="form-group row">
+                <div class="input-group p-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Board Name:</span>
+                    </div>
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid text-center h1", id = "boardName") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control text-center h1", id = "boardName") }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class = "my-3 input-group" id = "addParticipantGroup">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Add Participant</span>
+                        </div>
+                        <button class = "btn btn-primary" type = "button" id = "addParticipant"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div class="form-group" id = "participantGroup">
+                <div class="input-group d-none mb-3" data-index = "_" id = "participant-_-form">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold">Participant:</span>
+                    </div>
+                    {% if templateParticipant.username.errors %}
+                        {{ templateParticipant.username(class="form-control is-invalid text-center h1 row") }}
+                        <div class="invalid-feedback">
+                            {% for error in templateParticipant.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ templateParticipant.username(class="form-control text-center h1") }}
+                    {% endif %}
+
+
+                    {% if templateParticipant.role.errors %}
+                        {{ templateParticipant.role(class="form-control is-invalid text-center h1 row") }}
+                        <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="invalid-feedback">
+                            {% for error in templateParticipant.role.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ templateParticipant.role(class="form-control text-center h1") }}
+                        <button class = "btn btn-danger removeParticipant" type = "button"><i class="fa-solid fa-xmark"></i></button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group row">
+                <div  class="input-group p-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold" id="basic-addon3">Board Description:</span>
+                    </div>
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid text-center", id = "boardDescription", rows = 3) }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control text-center", id = "boardDescription", rows = 3) }}
+                    {% endif %}
+                </div>
+            </div>
+        </fieldset>
+{% endblock content %}
